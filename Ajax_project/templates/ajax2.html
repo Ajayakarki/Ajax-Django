@@ -1,0 +1,132 @@
+<script>
+    $('#btnsave').click(function(){
+        //alert('clicked!!')
+        output = "";
+        let emp_id = $('#empid').val();
+        let name_val = $('#nameid').val();
+        let age_val = $('#ageid').val();
+        let address_val = $('#addressid').val();
+        let salary_val = $('#salaryid').val();
+        let csrf = $("input[name=csrfmiddlewaretoken]").val();
+
+        if (name_val == ""){
+            alert('Name Field is Empty')
+        }
+        else if(age_val == ""){
+            alert('Age Field is Empty')
+        }
+        else if(salary_val == ""){
+            alert('Salary Field is Empty')
+        }
+        else if (address_val == ""){
+            alert('Address Field is Empty')
+        }
+        else{
+           mydata = {
+               eid: emp_id,
+               name: name_val,
+               age: age_val,
+               address: address_val,
+               salary: salary_val,
+               csrfmiddlewaretoken: csrf
+               
+           };
+           $.ajax({
+               url: "{% url 'save' %}",
+               method: "POST",
+               data: mydata,
+
+               success:function(data){
+                   //console.log(data)
+                   x = data.employee_data
+                   if (data.status == 'Save'){
+                       //alert('FOrm Submitted')
+                       $('#msg').text('Form Submited Successfully')
+                       $('#msg').show()
+
+                       for (i=0; i<x.length; i++){
+                           output += "<tr><td>" + x[i].name + "</td><td>" + x[i].age + "</td><td>" + x[i].address + "</td><td>" + x[i].salary + "</td><td> <input type = 'button' class = 'btn btn-warning btn-sm btn-edit' value='Edit' data-sid="+ x[i].id + "> <input type = 'button' class = 'btn btn-danger btn-sm btn-del' value='Delete' data-sid="+ x[i].id + ">"
+
+
+                       }
+                       $('#tbody').html(output);
+                       $('#empid').val('');
+                       $("form")[0].reset();
+                       
+
+                   }
+                   if (data.status == 0){
+                       alert('Something Wrong')
+                       $('#empid').val('');
+                       $("form")[0].reset();
+                   }
+
+
+               }
+           }) 
+        }
+    });
+
+    // For Deleting the Data
+    $('#tbody').on('click', '.btn-del', function(){
+        //alert('Delete button CLicked')
+        let id = $(this).attr('data-sid')
+        let csrf = $('input[name=csrfmiddlewaretoken]').val()
+        //console.log(id)
+        //console.log(csrf)
+        mydata = {
+            sid: id,
+            csrfmiddlewaretoken: csrf,
+        };
+        mythis = this;
+
+        $.ajax({
+            url: "{% url 'delete' %}",
+            method: "POST",
+            data: mydata,
+
+            success: function(data){
+                console.log(data)
+                if (data.status == 1){
+                    alert('Data delete')
+                    $(mythis).closest("tr").fadeOut();
+                }
+                if (data.status == 0){
+                    alert('somethig wrong');
+                }
+            }
+        })
+    })
+    
+
+    // For Editing Data
+    $('#tbody').on('click', '.btn-edit', function(){
+        //alert('Edit button clicked')
+        let id = $(this).attr('data-sid')
+        let csrf = $('input[name=csrfmiddlewaretoken]').val()
+        console.log(id)
+        //console.log(csrf)
+        mydata = {
+            sid: id,
+            csrfmiddlewaretoken: csrf,
+        }
+
+        $.ajax({
+            url: "{% url 'edit' %}",
+            method: 'POST',
+            data: mydata,
+
+            success: function(data){
+                console.log(data)
+                $('#empid').val(data.id)
+                $('#nameid').val(data.name)
+                $('#ageid').val(data.age)
+                $('#addressid').val(data.address)
+                $('#salaryid').val(data.salary)
+
+            }
+        })
+    })
+
+
+</script>
